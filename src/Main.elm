@@ -47,6 +47,14 @@ update msg model =
                         Err error ->
                             ( Failure, Cmd.none )
 
+                Todoist.GotProject result ->
+                    case result of
+                        Ok project ->
+                            ( Success [ project ], Cmd.none )
+
+                        Err error ->
+                            ( Failure, Cmd.none )
+
         NewToken token ->
             ( Loading token, Cmd.map TodoistMessage <| Todoist.getAllProjects token )
 

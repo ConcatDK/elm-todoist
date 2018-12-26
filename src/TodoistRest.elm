@@ -1,5 +1,6 @@
-module TodoistRest exposing (apiUrl, getAllProjects, Token, Project, Msg(..), Cmd(..))
+module TodoistRest exposing (Cmd(..), Msg(..), Project, Token, apiUrl, getAllProjects, getProject)
 
+import Dict
 import Http exposing (Expect, expectJson, expectString)
 import Json.Decode exposing (Decoder, field, int, string)
 import Result exposing (Result)
@@ -16,9 +17,12 @@ type alias Token =
 
 type Msg
     = GotAllProjects (Result Http.Error (List Project))
+    | GotProject (Result Http.Error Project)
+
 
 type Cmd
     = GetAllProjects
+    | GetProject Int
 
 
 type alias Project =
@@ -29,16 +33,25 @@ type alias Project =
     , comment_count : Int
     }
 
-getAllProjects token =
+
+todoistGetRequest url expect token =
     Http.request
         { method = "GET"
         , headers = [ Http.header "Authorization" ("Bearer " ++ token) ]
         , body = Http.emptyBody
-        , url = apiUrl "projects"
+        , url = url
         , timeout = Nothing
-        , expect = Http.expectJson GotAllProjects projectListDecoder
+        , expect = expect
         , tracker = Nothing
         }
+
+
+getAllProjects =
+    todoistGetRequest (apiUrl "projects") (Http.expectJson GotAllProjects projectListDecoder)
+
+
+getProject id =
+    todoistGetRequest (apiUrl "projects/" ++ String.fromInt id) (Http.expectJson GotProject projectDecoder)
 
 
 projectDecoder : Decoder Project
@@ -54,5 +67,3 @@ projectDecoder =
 projectListDecoder : Decoder (List Project)
 projectListDecoder =
     Json.Decode.list projectDecoder
-
-
