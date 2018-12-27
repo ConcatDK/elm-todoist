@@ -2,8 +2,11 @@ module TodoistRest exposing (Cmd(..), Msg(..), Project, Token, apiUrl, getAllPro
 
 import Dict
 import Http exposing (Expect, expectJson, expectString)
-import Json.Decode exposing (Decoder, field, int, string)
+import Iso8601
+import Json.Decode exposing (Decoder, de, field, int, string)
+import Json.Decode.Pipeline exposing (decoded, hardcoded, optional, required)
 import Result exposing (Result)
+import Time exposing (Posix)
 
 
 apiUrl : String -> String
@@ -31,6 +34,29 @@ type alias Project =
     , order : Int
     , indent : Int
     , comment_count : Int
+    }
+
+
+type alias Due =
+    { date : Posix
+    , string : String
+    , datetime : Maybe String
+    , timezone : Maybe String
+    }
+
+
+type alias Task =
+    { id : Int
+    , projectId : Int
+    , completed : Bool
+    , content : String
+    , labelIds : List Int
+    , order : Int
+    , indent : Int
+    , priority : Int
+    , due : Due
+    , url : String
+    , commentCount : Int
     }
 
 
