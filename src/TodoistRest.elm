@@ -1,10 +1,9 @@
-module TodoistRest exposing (Cmd(..), Msg(..), Project, Token, apiUrl, getAllProjects, getProject)
+module TodoistRest exposing (Project, Token, getAllProjects, getProject, projectListDecoder)
 
 import Dict
 import Http exposing (Expect, expectJson, expectString)
 import Iso8601
-import Json.Decode exposing (Decoder, de, field, int, string)
-import Json.Decode.Pipeline exposing (decoded, hardcoded, optional, required)
+import Json.Decode exposing (Decoder, field, int, string)
 import Result exposing (Result)
 import Time exposing (Posix)
 
@@ -16,16 +15,6 @@ apiUrl moduleName =
 
 type alias Token =
     String
-
-
-type Msg
-    = GotAllProjects (Result Http.Error (List Project))
-    | GotProject (Result Http.Error Project)
-
-
-type Cmd
-    = GetAllProjects
-    | GetProject Int
 
 
 type alias Project =
@@ -60,6 +49,7 @@ type alias Task =
     }
 
 
+todoistGetRequest : String -> Expect msg -> Token -> Cmd msg
 todoistGetRequest url expect token =
     Http.request
         { method = "GET"
@@ -72,12 +62,13 @@ todoistGetRequest url expect token =
         }
 
 
-getAllProjects =
-    todoistGetRequest (apiUrl "projects") (Http.expectJson GotAllProjects projectListDecoder)
+getAllProjects : (Result Http.Error (List Project) -> msg) -> Token -> Cmd msg
+getAllProjects msg =
+    todoistGetRequest (apiUrl "projects") (Http.expectJson msg projectListDecoder)
 
 
-getProject id =
-    todoistGetRequest (apiUrl "projects/" ++ String.fromInt id) (Http.expectJson GotProject projectDecoder)
+getProject result id =
+    todoistGetRequest (apiUrl "projects/" ++ String.fromInt id) (Http.expectJson result projectDecoder)
 
 
 projectDecoder : Decoder Project

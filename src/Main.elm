@@ -30,33 +30,19 @@ init _ =
 
 
 type Msg
-    = TodoistMessage Todoist.Msg
-    | NewToken Todoist.Token
+    = ProvidedNewToken Todoist.Token
+    | ReceivedNewProjects (Result Http.Error (List Todoist.Project))
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        TodoistMessage message ->
-            case message of
-                Todoist.GotAllProjects result ->
-                    case result of
-                        Ok projects ->
-                            ( Success projects, Cmd.none )
-
-                        Err error ->
-                            ( Failure, Cmd.none )
-
-                Todoist.GotProject result ->
-                    case result of
-                        Ok project ->
-                            ( Success [ project ], Cmd.none )
-
-                        Err error ->
-                            ( Failure, Cmd.none )
-
-        NewToken token ->
-            ( Loading token, Cmd.map TodoistMessage <| Todoist.getAllProjects token )
+        ProvidedNewToken token ->
+            (Loading token, Todoist.getAllProjects ReceivedNewProjects token )
+        ReceivedNewProjects result ->
+            case result of
+                Err error -> (Failure, Cmd.none)
+                Ok projects -> (Success projects, Cmd.none)
 
 
 viewProject : Todoist.Project -> Html Msg
@@ -77,7 +63,7 @@ view : Model -> Html Msg
 view model =
     Html.div []
         [ Html.form []
-            [ Html.input [ Event.onInput NewToken ] [] ]
+            [ Html.input [ Event.onInput ProvidedNewToken ] [] ]
         , Html.br [] []
         , case model of
             NoToken ->
