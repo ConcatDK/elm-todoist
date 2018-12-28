@@ -54,7 +54,7 @@ viewProject project =
             [ Html.li [] [ Html.text "id: ", Html.text <| String.fromInt project.id ]
             , Html.li [] [ Html.text "order: ", Html.text <| String.fromInt project.order ]
             , Html.li [] [ Html.text "indent: ", Html.text <| String.fromInt project.indent ]
-            , Html.li [] [ Html.text "comment count: ", Html.text <| String.fromInt project.comment_count ]
+            , Html.li [] [ Html.text "comment count: ", Html.text <| String.fromInt project.commentCount ]
             ]
         ]
 

@@ -1,4 +1,17 @@
-module TodoistRest exposing (Project, Token, getAllProjects, getProject, projectListDecoder)
+module TodoistRest exposing
+    ( Token, Project
+    , getAllProjects, getProject
+    )
+
+{-| This library provides functions for integration with the Todoist rest Api.
+
+# Data types
+@docs Token, Project
+
+# Api calls
+@docs getAllProjects, getProject
+
+-}
 
 import Dict
 import Http exposing (Expect, expectJson, expectString)
@@ -13,16 +26,29 @@ apiUrl moduleName =
     "https://beta.todoist.com/API/v8/" ++ moduleName
 
 
+{-| A todoist access token. This is needed for all calls to the api.
+This can be found on: <https://todoist.com/prefs/integrations> at the very bottom of the page.
+-}
 type alias Token =
     String
 
 
+{-| The Todoist Project type represents a project in todoist. It has the
+following values:
+
+    * id: Integer - The project unique id on the Todoist platform
+    * name: String - The name of the project
+    * order: Int - The order of the projects in the users setup
+    * indent: Int - An int ranging from 1 to 4 for the project indentation level.
+    * commentCount: Int - The amount of comments on a project.
+
+-}
 type alias Project =
     { id : Int
     , name : String
     , order : Int
     , indent : Int
-    , comment_count : Int
+    , commentCount : Int
     }
 
 
@@ -49,6 +75,14 @@ type alias Task =
     }
 
 
+{-| Makes a get request with correct headers and body for the Todoist api.
+The first parameter is which url to ask on, the second is an Expect to indicate
+how to interpret the answer and the third is the token used to make the request with.
+
+This function is not supposed to be exposed. If a certain kind of request to the api is
+not already written as a seperate function write one and expose that instead.
+
+-}
 todoistGetRequest : String -> Expect msg -> Token -> Cmd msg
 todoistGetRequest url expect token =
     Http.request
@@ -62,15 +96,22 @@ todoistGetRequest url expect token =
         }
 
 
+{-| Makes a get request asking for all the projects associated with the provided token.
+-}
 getAllProjects : (Result Http.Error (List Project) -> msg) -> Token -> Cmd msg
 getAllProjects msg =
     todoistGetRequest (apiUrl "projects") (Http.expectJson msg projectListDecoder)
 
 
+{-| Makes a get request asking for the project associated with the provided id.
+Will fail if the provided token does not grant access to the project.
+-}
 getProject result id =
     todoistGetRequest (apiUrl "projects/" ++ String.fromInt id) (Http.expectJson result projectDecoder)
 
 
+{-| A decoder for the Project type. Will fail if any of the fields are not present or are malformed.
+-}
 projectDecoder : Decoder Project
 projectDecoder =
     Json.Decode.map5 Project
