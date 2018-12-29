@@ -1,6 +1,6 @@
 module TodoistRest exposing
-    ( Token, Project
-    , getAllProjects, getProject
+    ( Token, Project, Due, Task
+    , getAllProjects, getProject, getActiveTasks
     )
 
 {-| This library provides functions for integration with the Todoist rest Api.
@@ -16,7 +16,8 @@ module TodoistRest exposing
 import Dict
 import Http exposing (Expect, expectJson, expectString)
 import Iso8601
-import Json.Decode exposing (Decoder, field, int, string)
+import Json.Decode exposing (Decoder, field, int, string, bool)
+import Json.Decode.Pipeline exposing (required, optional)
 import Result exposing (Result)
 import Time exposing (Posix)
 
@@ -53,7 +54,7 @@ type alias Project =
 
 
 type alias Due =
-    { date : Posix
+    { date : String {- TODO make date a Posix instead of string -}
     , string : String
     , datetime : Maybe String
     , timezone : Maybe String
@@ -69,7 +70,7 @@ type alias Task =
     , order : Int
     , indent : Int
     , priority : Int
-    , due : Due
+    , due : Maybe Due
     , url : String
     , commentCount : Int
     }
@@ -110,6 +111,10 @@ getProject result id =
     todoistGetRequest (apiUrl "projects/" ++ String.fromInt id) (Http.expectJson result projectDecoder)
 
 
+getActiveTasks : (Result Http.Error (List Task) -> msg) -> Token -> Cmd msg
+getActiveTasks msg =
+    todoistGetRequest (apiUrl "tasks") (Http.expectJson msg (Json.Decode.list taskDecoder))
+
 {-| A decoder for the Project type. Will fail if any of the fields are not present or are malformed.
 -}
 projectDecoder : Decoder Project
@@ -125,3 +130,27 @@ projectDecoder =
 projectListDecoder : Decoder (List Project)
 projectListDecoder =
     Json.Decode.list projectDecoder
+
+
+dueDecoder : Decoder Due
+dueDecoder =
+    Json.Decode.succeed Due
+        |> required "date" string
+        |> required "string" string
+        |> optional "datetime" (Json.Decode.map Just string) Nothing
+        |> optional "timezone" (Json.Decode.map Just string) Nothing
+
+taskDecoder : Decoder Task
+taskDecoder =
+    Json.Decode.succeed Task
+        |> required "id" int
+        |> required "project_id" int
+        |> required "completed" bool
+        |> required "content" string
+        |> required "label_ids" (Json.Decode.list int)
+        |> required "order" int
+        |> required "indent" int
+        |> required "priority" int
+        |> optional "due" (Json.Decode.maybe dueDecoder) Nothing
+        |> required "url" string
+        |> required "comment_count" int
