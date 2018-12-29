@@ -1,14 +1,19 @@
 module TodoistRest exposing
-    ( Token, Project, Due, Task
-    , getAllProjects, getProject, getActiveTasks
+    ( Token, Project
+    , getAllProjects, getProject
+    , Due, Task, getActiveTask, getActiveTasks
     )
 
 {-| This library provides functions for integration with the Todoist rest Api.
 
+
 # Data types
+
 @docs Token, Project
 
+
 # Api calls
+
 @docs getAllProjects, getProject
 
 -}
@@ -16,8 +21,8 @@ module TodoistRest exposing
 import Dict
 import Http exposing (Expect, expectJson, expectString)
 import Iso8601
-import Json.Decode exposing (Decoder, field, int, string, bool)
-import Json.Decode.Pipeline exposing (required, optional)
+import Json.Decode exposing (Decoder, bool, field, int, string)
+import Json.Decode.Pipeline exposing (optional, required)
 import Result exposing (Result)
 import Time exposing (Posix)
 
@@ -54,7 +59,7 @@ type alias Project =
 
 
 type alias Due =
-    { date : String {- TODO make date a Posix instead of string -}
+    { date : String --TODO make date a Posix instead of string
     , string : String
     , datetime : Maybe String
     , timezone : Maybe String
@@ -115,6 +120,12 @@ getActiveTasks : (Result Http.Error (List Task) -> msg) -> Token -> Cmd msg
 getActiveTasks msg =
     todoistGetRequest (apiUrl "tasks") (Http.expectJson msg (Json.Decode.list taskDecoder))
 
+
+getActiveTask : (Result Http.Error (List Task) -> msg) -> Int -> Token -> Cmd msg
+getActiveTask msg id =
+    todoistGetRequest (apiUrl "tasks/" ++ String.fromInt id) (Http.expectJson msg (Json.Decode.list taskDecoder))
+
+
 {-| A decoder for the Project type. Will fail if any of the fields are not present or are malformed.
 -}
 projectDecoder : Decoder Project
@@ -139,6 +150,7 @@ dueDecoder =
         |> required "string" string
         |> optional "datetime" (Json.Decode.map Just string) Nothing
         |> optional "timezone" (Json.Decode.map Just string) Nothing
+
 
 taskDecoder : Decoder Task
 taskDecoder =
