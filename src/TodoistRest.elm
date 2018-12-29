@@ -1,7 +1,7 @@
 module TodoistRest exposing
     ( Token, Project
     , getAllProjects, getProject
-    , Due, Task, getActiveTask, getActiveTasks
+    , Due, Label, Task, getActiveTask, getActiveTasks, getAllLabels, getLabel
     )
 
 {-| This library provides functions for integration with the Todoist rest Api.
@@ -81,6 +81,13 @@ type alias Task =
     }
 
 
+type alias Label =
+    { id : Int
+    , name : String
+    , order : Int
+    }
+
+
 {-| Makes a get request with correct headers and body for the Todoist api.
 The first parameter is which url to ask on, the second is an Expect to indicate
 how to interpret the answer and the third is the token used to make the request with.
@@ -112,8 +119,8 @@ getAllProjects msg =
 {-| Makes a get request asking for the project associated with the provided id.
 Will fail if the provided token does not grant access to the project.
 -}
-getProject result id =
-    todoistGetRequest (apiUrl "projects/" ++ String.fromInt id) (Http.expectJson result projectDecoder)
+getProject msg id =
+    todoistGetRequest (apiUrl "projects/" ++ String.fromInt id) (Http.expectJson msg projectDecoder)
 
 
 getActiveTasks : (Result Http.Error (List Task) -> msg) -> Token -> Cmd msg
@@ -124,6 +131,16 @@ getActiveTasks msg =
 getActiveTask : (Result Http.Error (List Task) -> msg) -> Int -> Token -> Cmd msg
 getActiveTask msg id =
     todoistGetRequest (apiUrl "tasks/" ++ String.fromInt id) (Http.expectJson msg (Json.Decode.list taskDecoder))
+
+
+getAllLabels : (Result Http.Error (List Label) -> msg) -> Token -> Cmd msg
+getAllLabels msg =
+    todoistGetRequest (apiUrl "labels") (Http.expectJson msg (Json.Decode.list labelDecoder))
+
+
+getLabel : (Result Http.Error Label -> msg) -> Int -> Token -> Cmd msg
+getLabel msg id =
+    todoistGetRequest (apiUrl "labels/" ++ String.fromInt id) (Http.expectJson msg labelDecoder)
 
 
 {-| A decoder for the Project type. Will fail if any of the fields are not present or are malformed.
@@ -150,6 +167,14 @@ dueDecoder =
         |> required "string" string
         |> optional "datetime" (Json.Decode.map Just string) Nothing
         |> optional "timezone" (Json.Decode.map Just string) Nothing
+
+
+labelDecoder : Decoder Label
+labelDecoder =
+    Json.Decode.succeed Label
+        |> required "id" int
+        |> required "name" string
+        |> required "order" int
 
 
 taskDecoder : Decoder Task
