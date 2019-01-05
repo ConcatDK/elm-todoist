@@ -1,6 +1,6 @@
 {
     "type": "package",
-    "name": "Concat/todoist",
+    "name": "ConcatDK/todoist",
     "summary": "Handling integration with the Todoist API",
     "license": "BSD-3-Clause",
     "version": "1.0.0",
