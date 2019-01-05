@@ -1,4 +1,4 @@
-module Main exposing (main)
+module TodoistExample exposing (main)
 
 import Browser
 import Html exposing (Html)
