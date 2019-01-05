@@ -1,5 +1,9 @@
 {
-    "type": "application",
+   "type": "package",
+    "name": "Concat/Todoist",
+    "summary": "Handling integration with the todoist API",
+    "licence": "BSD-3-Clause",
+    "version": "0.1",
     "source-directories": [
         "src"
     ],

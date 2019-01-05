@@ -109,20 +109,23 @@ todoistGetRequest url expect token =
         }
 
 
-{-| Makes a get request asking for all the projects associated with the provided token.
+{-| Makes a get request for all the projects associated with the provided token.
 -}
 getAllProjects : (Result Http.Error (List Project) -> msg) -> Token -> Cmd msg
 getAllProjects msg =
-    todoistGetRequest (apiUrl "projects") (Http.expectJson msg projectListDecoder)
+    todoistGetRequest (apiUrl "projects") (Http.expectJson msg (Json.Decode.list projectDecoder))
 
 
-{-| Makes a get request asking for the project associated with the provided id.
+{-| Makes a get request for the project associated with the provided id.
 Will fail if the provided token does not grant access to the project.
 -}
+getProject : (Result Http.Error Project -> msg) -> Int -> Token -> Cmd msg
 getProject msg id =
     todoistGetRequest (apiUrl "projects/" ++ String.fromInt id) (Http.expectJson msg projectDecoder)
 
 
+{-| Makes a get request for all the active tasks associated with the provided token.
+-}
 getActiveTasks : (Result Http.Error (List Task) -> msg) -> Token -> Cmd msg
 getActiveTasks msg =
     todoistGetRequest (apiUrl "tasks") (Http.expectJson msg (Json.Decode.list taskDecoder))
@@ -133,6 +136,8 @@ getActiveTask msg id =
     todoistGetRequest (apiUrl "tasks/" ++ String.fromInt id) (Http.expectJson msg (Json.Decode.list taskDecoder))
 
 
+{-| Makes a get request for all the labels associated with the provided token.
+-}
 getAllLabels : (Result Http.Error (List Label) -> msg) -> Token -> Cmd msg
 getAllLabels msg =
     todoistGetRequest (apiUrl "labels") (Http.expectJson msg (Json.Decode.list labelDecoder))
@@ -143,7 +148,7 @@ getLabel msg id =
     todoistGetRequest (apiUrl "labels/" ++ String.fromInt id) (Http.expectJson msg labelDecoder)
 
 
-{-| A decoder for the Project type. Will fail if any of the fields are not present or are malformed.
+{-| Decoder for the Project type
 -}
 projectDecoder : Decoder Project
 projectDecoder =
@@ -155,11 +160,8 @@ projectDecoder =
         (field "comment_count" int)
 
 
-projectListDecoder : Decoder (List Project)
-projectListDecoder =
-    Json.Decode.list projectDecoder
-
-
+{-| Decoder for the Due type
+-}
 dueDecoder : Decoder Due
 dueDecoder =
     Json.Decode.succeed Due
@@ -169,6 +171,8 @@ dueDecoder =
         |> optional "timezone" (Json.Decode.map Just string) Nothing
 
 
+{-| Decoder for the Label type
+-}
 labelDecoder : Decoder Label
 labelDecoder =
     Json.Decode.succeed Label
@@ -177,6 +181,8 @@ labelDecoder =
         |> required "order" int
 
 
+{-| Decoder for the Task type
+-}
 taskDecoder : Decoder Task
 taskDecoder =
     Json.Decode.succeed Task
