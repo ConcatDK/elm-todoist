@@ -20,11 +20,12 @@ module TodoistRest exposing
 
 @docs getAllProjects, getProject
 
-##Tasks
+
+## Tasks
 
 @docs getActiveTasks, getActiveTask
 
-##Labels
+## Labels
 
 @docs getLabel, getAllLabels
 
