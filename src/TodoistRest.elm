@@ -1,7 +1,8 @@
 module TodoistRest exposing
-    ( Token, Project
+    ( Token, Project, Task, Due, Label
     , getAllProjects, getProject
-    , Due, Label, Task, getActiveTask, getActiveTasks, getAllLabels, getLabel
+    , getActiveTasks, getActiveTask
+    , getLabel, getAllLabels
     )
 
 {-| This library provides functions for integration with the Todoist rest Api.
@@ -9,12 +10,23 @@ module TodoistRest exposing
 
 # Data types
 
-@docs Token, Project
+@docs Token, Project, Task, Due, Label
 
 
 # Api calls
 
+
+## Projects
+
 @docs getAllProjects, getProject
+
+##Tasks
+
+@docs getActiveTasks, getActiveTask
+
+##Labels
+
+@docs getLabel, getAllLabels
 
 -}
 
@@ -58,6 +70,15 @@ type alias Project =
     }
 
 
+{-| The Due type represents a due date.
+It has the following values:
+
+    * date : String - This is a String telling when the due time is.
+    * string : String - A human readable representation of the due date
+    * datetime : String - A datetime representing the die date
+    * timezone : String - The timezone the datetime is set in
+
+-}
 type alias Due =
     { date : String --TODO make date a Posix instead of string
     , string : String
@@ -66,6 +87,21 @@ type alias Due =
     }
 
 
+{-| The task type represents a todoist task.
+It has the following values:
+
+    * id : Int - The task unique id in Todoist
+    * projectId : Int - The id of the project the task is in
+    * completed : Bool - If the task is completed or not
+    * labelIds : List Int - A list of all associated label ids
+    * order : Int - The order of the task in the project it is in
+    * indent : Int - Indention level of the task in the project
+    * priority : Int - The priority of the task, takes on a value from 1 to 4.
+    * due : Maybe Due - A due object telling when the task is due, Nothing if no due date is specified
+    * url : String - The permanent link to the task page on Todoist.com
+    * commentCount : Int - The amount of comments on the task.
+
+-}
 type alias Task =
     { id : Int
     , projectId : Int
@@ -81,6 +117,14 @@ type alias Task =
     }
 
 
+{-| The label type represents a Todoist label.
+It has the following values:
+
+    * id : Int - The label unique id in Todoist
+    * name : String - The label name
+    * order : Int - The order number of the label in the list of all labels.
+
+-}
 type alias Label =
     { id : Int
     , name : String
@@ -131,6 +175,8 @@ getActiveTasks msg =
     todoistGetRequest (apiUrl "tasks") (Http.expectJson msg (Json.Decode.list taskDecoder))
 
 
+{-| Makes a get request for the task associated with the provided id.
+-}
 getActiveTask : (Result Http.Error (List Task) -> msg) -> Int -> Token -> Cmd msg
 getActiveTask msg id =
     todoistGetRequest (apiUrl "tasks/" ++ String.fromInt id) (Http.expectJson msg (Json.Decode.list taskDecoder))
@@ -143,6 +189,8 @@ getAllLabels msg =
     todoistGetRequest (apiUrl "labels") (Http.expectJson msg (Json.Decode.list labelDecoder))
 
 
+{-| Makes a get request for the label associated with the provided id.
+-}
 getLabel : (Result Http.Error Label -> msg) -> Int -> Token -> Cmd msg
 getLabel msg id =
     todoistGetRequest (apiUrl "labels/" ++ String.fromInt id) (Http.expectJson msg labelDecoder)
