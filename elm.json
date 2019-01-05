@@ -1,6 +1,6 @@
 {
     "type": "package",
-    "name": "ConcatDK/todoist",
+    "name": "ConcatDK/elm-todoist",
     "summary": "Handling integration with the Todoist API",
     "license": "BSD-3-Clause",
     "version": "1.0.0",
