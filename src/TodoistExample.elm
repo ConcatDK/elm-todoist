@@ -32,21 +32,21 @@ init _ =
 
 type Msg
     = ProvidedNewProjectToken Todoist.Token
-    | ReceivedNewProjects (Result Http.Error (List Todoist.Project))
+    | FetchNewProjects (Result Http.Error (List Todoist.Project))
     | ProvidedNewTaskToken Todoist.Token
-    | ReceivedNewTasks (Result Http.Error (List Todoist.Task))
+    | FetchNewTasks (Result Http.Error (List Todoist.Task))
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ProvidedNewProjectToken token ->
-            ( Loading, Todoist.getAllProjects ReceivedNewProjects token )
+            ( Loading, Todoist.getAllProjects FetchNewProjects token )
 
         ProvidedNewTaskToken token ->
-            ( Loading, Todoist.getActiveTasks ReceivedNewTasks token )
+            ( Loading, Todoist.getActiveTasks FetchNewTasks token )
 
-        ReceivedNewProjects result ->
+        FetchNewProjects result ->
             case result of
                 Err error ->
                     ( Failure (Debug.toString error), Cmd.none )
@@ -54,7 +54,7 @@ update msg model =
                 Ok projects ->
                     ( SuccessProjects projects, Cmd.none )
 
-        ReceivedNewTasks result ->
+        FetchNewTasks result ->
             case result of
                 Err error ->
                     ( Failure (Debug.toString error), Cmd.none )
@@ -94,7 +94,10 @@ view : Model -> Html Msg
 view model =
     Html.div []
         [ Html.form []
-            [ Html.input [ Event.onInput ProvidedNewProjectToken ] [ Html.text "Provide a token for projects" ]
+            [ Html.text "Provide a token here to fetch projects: "
+            , Html.input [ Event.onInput ProvidedNewProjectToken ] [ Html.text "Provide a token for projects" ]
+            , Html.br [] []
+            , Html.text "Provide one here to fetch tasks: "
             , Html.input [ Event.onInput ProvidedNewTaskToken ] [ Html.text "Provide a token for tasks" ]
             ]
         , Html.br [] []
@@ -112,5 +115,5 @@ view model =
                 Html.div [] <| List.map viewProject projects
 
             SuccessTasks tasks ->
-                Html.div [] <| List.map viewTask <| List.filter (\t -> t.priority == 4 ) tasks
+                Html.div [] <| List.map viewTask tasks
         ]

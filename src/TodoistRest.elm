@@ -25,24 +25,20 @@ module TodoistRest exposing
 
 @docs getActiveTasks, getActiveTask
 
+
 ## Labels
 
 @docs getLabel, getAllLabels
 
 -}
 
-import Dict
-import Http exposing (Expect, expectJson, expectString)
+import Api
+import Http exposing (Expect)
 import Iso8601
 import Json.Decode exposing (Decoder, bool, field, int, string)
 import Json.Decode.Pipeline exposing (optional, required)
 import Result exposing (Result)
 import Time exposing (Posix)
-
-
-apiUrl : String -> String
-apiUrl moduleName =
-    "https://beta.todoist.com/API/v8/" ++ moduleName
 
 
 {-| A todoist access token. This is needed for all calls to the api.
@@ -138,7 +134,7 @@ The first parameter is which url to ask on, the second is an Expect to indicate
 how to interpret the answer and the third is the token used to make the request with.
 
 This function is not supposed to be exposed. If a certain kind of request to the api is
-not already written as a seperate function write one and expose that instead.
+not already written as a separate function write one and expose that instead.
 
 -}
 todoistGetRequest : String -> Expect msg -> Token -> Cmd msg
@@ -158,7 +154,7 @@ todoistGetRequest url expect token =
 -}
 getAllProjects : (Result Http.Error (List Project) -> msg) -> Token -> Cmd msg
 getAllProjects msg =
-    todoistGetRequest (apiUrl "projects") (Http.expectJson msg (Json.Decode.list projectDecoder))
+    todoistGetRequest (Api.url Api.ProjectSearch) (Http.expectJson msg (Json.Decode.list projectDecoder))
 
 
 {-| Makes a get request for the project associated with the provided id.
@@ -166,35 +162,35 @@ Will fail if the provided token does not grant access to the project.
 -}
 getProject : (Result Http.Error Project -> msg) -> Int -> Token -> Cmd msg
 getProject msg id =
-    todoistGetRequest (apiUrl "projects/" ++ String.fromInt id) (Http.expectJson msg projectDecoder)
+    todoistGetRequest (Api.url <| Api.ProjectIdGet id) (Http.expectJson msg projectDecoder)
 
 
 {-| Makes a get request for all the active tasks associated with the provided token.
 -}
 getActiveTasks : (Result Http.Error (List Task) -> msg) -> Token -> Cmd msg
 getActiveTasks msg =
-    todoistGetRequest (apiUrl "tasks") (Http.expectJson msg (Json.Decode.list taskDecoder))
+    todoistGetRequest (Api.url <| Api.TaskSearch Api.defaultTaskRequestParameters) (Http.expectJson msg (Json.Decode.list taskDecoder))
 
 
 {-| Makes a get request for the task associated with the provided id.
 -}
 getActiveTask : (Result Http.Error (List Task) -> msg) -> Int -> Token -> Cmd msg
 getActiveTask msg id =
-    todoistGetRequest (apiUrl "tasks/" ++ String.fromInt id) (Http.expectJson msg (Json.Decode.list taskDecoder))
+    todoistGetRequest (Api.url <| Api.TaskIdGet id) (Http.expectJson msg (Json.Decode.list taskDecoder))
 
 
 {-| Makes a get request for all the labels associated with the provided token.
 -}
 getAllLabels : (Result Http.Error (List Label) -> msg) -> Token -> Cmd msg
 getAllLabels msg =
-    todoistGetRequest (apiUrl "labels") (Http.expectJson msg (Json.Decode.list labelDecoder))
+    todoistGetRequest (Api.url Api.LabelSearch) (Http.expectJson msg (Json.Decode.list labelDecoder))
 
 
 {-| Makes a get request for the label associated with the provided id.
 -}
 getLabel : (Result Http.Error Label -> msg) -> Int -> Token -> Cmd msg
 getLabel msg id =
-    todoistGetRequest (apiUrl "labels/" ++ String.fromInt id) (Http.expectJson msg labelDecoder)
+    todoistGetRequest (Api.url <| Api.LabelIdGet id) (Http.expectJson msg labelDecoder)
 
 
 {-| Decoder for the Project type
