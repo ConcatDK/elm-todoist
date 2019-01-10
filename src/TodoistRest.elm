@@ -1,7 +1,7 @@
 module TodoistRest exposing
     ( Token, Project, Task, Due, Label
     , getAllProjects, getProject
-    , getActiveTasks, getActiveTask
+    , getActiveTasks, getActiveTask, getActiveTasksWithFilter
     , getLabel, getAllLabels
     )
 
@@ -23,7 +23,7 @@ module TodoistRest exposing
 
 ## Tasks
 
-@docs getActiveTasks, getActiveTask
+@docs getActiveTasks, getActiveTask, getActiveTasksWithFilter
 
 
 ## Labels
@@ -32,7 +32,7 @@ module TodoistRest exposing
 
 -}
 
-import Api
+import Api exposing (defaultTaskRequestParameters)
 import Http exposing (Expect)
 import Iso8601
 import Json.Decode exposing (Decoder, bool, field, int, string)
@@ -169,7 +169,22 @@ getProject msg id =
 -}
 getActiveTasks : (Result Http.Error (List Task) -> msg) -> Token -> Cmd msg
 getActiveTasks msg =
-    todoistGetRequest (Api.url <| Api.TaskSearch Api.defaultTaskRequestParameters) (Http.expectJson msg (Json.Decode.list taskDecoder))
+    todoistGetRequest
+        (Api.url <| Api.TaskSearch defaultTaskRequestParameters)
+        (Http.expectJson msg (Json.Decode.list taskDecoder))
+
+
+{-| Gets all active tasks that satisfies a todoist query
+(for help visit: <https://get.todoist.help/hc/en-us/articles/205248842-Filters>)
+
+    getActiveTasksWithFilter FetchShoppingTasks "@buy | #Shopping" myToken
+
+-}
+getActiveTasksWithFilter : (Result Http.Error (List Task) -> msg) -> String -> Token -> Cmd msg
+getActiveTasksWithFilter msg filter =
+    todoistGetRequest
+        (Api.url <| Api.TaskSearch { defaultTaskRequestParameters | filter = Just filter })
+        (Http.expectJson msg (Json.Decode.list taskDecoder))
 
 
 {-| Makes a get request for the task associated with the provided id.
