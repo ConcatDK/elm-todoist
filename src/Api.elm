@@ -1,4 +1,4 @@
-module Api exposing (ModuleRequest(..), defaultTaskRequestParameters, url)
+module Api exposing (ModuleRequest(..), defaultTaskRequestParameters, url, queryParameters)
 
 import Maybe.Extra
 import Url
@@ -61,7 +61,7 @@ url moduleRequest =
             "beta.todoist.com"
             Nothing
             (pathString moduleRequest)
-            (Just <| Builder.toQuery <| queryParameters moduleRequest)
+            Nothing
             Nothing
 
 
