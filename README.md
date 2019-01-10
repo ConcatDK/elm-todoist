@@ -20,3 +20,17 @@ at the very bottom of the page.
 The Todoist rest api is documented on 
 https://developer.todoist.com/rest/v8/
 and the goal of the package is to support all accepted queries described in this documentation.
+
+## Developing
+To develop on this project the nix package manager should be installed on the system ([Get it here](https://nixos.org/nix/)).
+
+Enter the `nix-shell` environment by running the command `nix-shell` in the project root.
+
+You should now be ready to develop!
+
+A few commands should be available after entering the `nix-shell`
+
+* `elm`: The elm compiler
+* `elm-format`: Makes sure that the file format and code style is consistent
+* `elm-live`: Runs a live-reloaded development server
+* `elm-test`: Runs the tests in the `tests/` directory
