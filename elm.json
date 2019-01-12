@@ -3,7 +3,7 @@
     "name": "ConcatDK/elm-todoist",
     "summary": "Handling integration with the Todoist API",
     "license": "BSD-3-Clause",
-    "version": "1.0.1",
+    "version": "1.1.0",
     "exposed-modules": {
         "Rest": [
             "TodoistRest"
